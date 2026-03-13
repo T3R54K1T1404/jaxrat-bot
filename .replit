@@ -1,0 +1,8 @@
+run = "python main.py"
+
+[packager]
+language = "python3"
+
+[packager.features]
+packageSearch = true
+packageInstall = true
