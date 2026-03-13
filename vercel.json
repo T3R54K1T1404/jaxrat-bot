@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/webhook/(.*)",
+      "dest": "/api/bot.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/api/bot.js"
+    }
+  ],
+  "env": {
+    "BOT_TOKEN": "8019851816:AAFytb4-6Owqdttdhja77wqabJt8p_ZUaho",
+    "FIREBASE_URL": "https://kwontol-default-rtdb.firebaseio.com",
+    "OWNER_PHONE": "085136030617",
+    "OWNER_UID": "aKWJNVaAW3Rnclir7gNgwngLl1v1",
+    "GROUP_LINK": "https://t.me/+kumpulanbuyerjaxrat"
+  }
+}
