@@ -1,8 +1,7 @@
-run = "python main.py"
+run = "npm start"
 
 [packager]
-language = "python3"
+language = "nodejs"
 
-[packager.features]
-packageSearch = true
-packageInstall = true
+[env]
+BOT_TOKEN = "8019851816:AAFytb4-6Owqdttdhja77wqabJt8p_ZUaho"
