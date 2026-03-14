@@ -352,4 +352,135 @@ bot.onText(/\/stats/, async (msg) => {
     // Get users stats
     const usersRef = db.ref('users');
     const usersSnapshot = await usersRef.once('value');
-    const
+    const users = usersSnapshot.val() || {};
+    
+    // Get devices stats
+    const devicesRef = db.ref('devices');
+    const devicesSnapshot = await devicesRef.once('value');
+    const devices = devicesSnapshot.val() || {};
+    
+    // Get payments stats
+    const paymentsRef = db.ref('payments');
+    const paymentsSnapshot = await paymentsRef.once('value');
+    const payments = paymentsSnapshot.val() || {};
+    
+    let activeUsers = 0;
+    Object.keys(users).forEach(uid => {
+        if (users[uid].hasAccess && users[uid].accessUntil > Date.now()) {
+            activeUsers++;
+        }
+    });
+    
+    let pendingPayments = 0;
+    let completedPayments = 0;
+    Object.keys(payments).forEach(pid => {
+        if (payments[pid].status === 'pending') pendingPayments++;
+        if (payments[pid].status === 'completed') completedPayments++;
+    });
+    
+    const stats = `
+📊 *System Statistics*
+
+👥 *Users:*
+Total: ${Object.keys(users).length}
+Aktif: ${activeUsers}
+Non-aktif: ${Object.keys(users).length - activeUsers}
+
+📱 *Devices:*
+Total: ${Object.keys(devices).length}
+Online: ? (cek dashboard)
+
+💰 *Payments:*
+Total: ${Object.keys(payments).length}
+Pending: ${pendingPayments}
+Completed: ${completedPayments}
+
+💾 *Database:*
+Last backup: ${new Date().toLocaleString('id-ID')}
+    `;
+    
+    await bot.sendMessage(chatId, stats, { parse_mode: 'Markdown' });
+});
+
+// Handle callback queries (for inline keyboards)
+bot.on('callback_query', async (callbackQuery) => {
+    const msg = callbackQuery.message;
+    const chatId = msg.chat.id;
+    const data = callbackQuery.data;
+    
+    // Handle different callback data
+    if (data.startsWith('approve_')) {
+        const paymentId = data.replace('approve_', '');
+        // Handle payment approval
+        await handlePaymentApproval(chatId, paymentId);
+    }
+    
+    await bot.answerCallbackQuery(callbackQuery.id);
+});
+
+// Handle payment approval
+async function handlePaymentApproval(adminChatId, paymentId) {
+    if (!isOwner(adminChatId)) return;
+    
+    const paymentRef = db.ref(`payments/${paymentId}`);
+    const snapshot = await paymentRef.once('value');
+    const payment = snapshot.val();
+    
+    if (!payment) {
+        await bot.sendMessage(adminChatId, 'Payment not found');
+        return;
+    }
+    
+    // Update payment status
+    await paymentRef.update({ status: 'completed', approvedBy: adminChatId, approvedAt: Date.now() });
+    
+    // Generate user credentials
+    const email = `user${Math.floor(Math.random() * 10000)}@recentapp.com`;
+    const password = Math.random().toString(36).substring(2, 10);
+    const accessUntil = Date.now() + (30 * 24 * 60 * 60 * 1000); // 30 days
+    
+    // Add user
+    await db.ref(`users/${payment.chatId}`).set({
+        hasAccess: true,
+        accessUntil: accessUntil,
+        email: email,
+        password: password,
+        devices: 0,
+        addedBy: adminChatId,
+        addedAt: Date.now()
+    });
+    
+    // Notify user
+    try {
+        await bot.sendMessage(payment.chatId,
+            `🎉 *Pembayaran Anda telah dikonfirmasi!*\n\n` +
+            `Akses Anda telah diaktifkan selama 30 hari.\n\n` +
+            `Panel: https://recentapp-panel.vercel.app\n` +
+            `Email: \`${email}\`\n` +
+            `Password: \`${password}\`\n\n` +
+            `Gunakan credentials di atas untuk login ke panel.\n\n` +
+            `Join group: ${config.groupLink}`,
+            { parse_mode: 'Markdown' }
+        );
+    } catch (error) {
+        console.error('Error notifying user:', error);
+    }
+    
+    await bot.sendMessage(adminChatId, `✅ Payment ${paymentId} approved and user added!`);
+}
+
+// Error handler
+bot.on('polling_error', (error) => {
+    console.error('Polling error:', error);
+});
+
+// Express server for health check (required for Replit)
+app.get('/', (req, res) => {
+    res.send('RecentApp Bot is running!');
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log('Bot started!');
+});
