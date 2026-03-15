@@ -24,14 +24,14 @@ PRICE = 50000  # Harga dalam Rupiah
 FIREBASE_CRED = {
   "type": "service_account",
   "project_id": "jaxrat-6813c",
-  "private_key_id": "ISI_DARI_FILE_JSON",
-  "private_key": "ISI_DARI_FILE_JSON",
-  "client_email": "firebase-adminsdk@jaxrat-6813c.iam.gserviceaccount.com",
-  "client_id": "ISI",
+  "private_key_id": "02bc4a6e3d0063caf5b42254cafd24285defba32",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCuB5XdjIezC76R\n4iDKPxLPYjTbF6X1gxxGCvU1pJF9WqL166W9bdJiTVe6wmWcl9AYwQQwq43QRmuD\nOokmKL/MmvGEFTheClSO8V0r25/arRgbmFV2XcQB5zPUMNhO1EkzbW96maXgwKur\ns1sUaJ67ynzeLaIuOQWwSXtyYbUbFiEkOBtKXm129iUUK3cdgFdNMOoD4VBTPyvt\nxJrIm3C6BpoD95kibd05/wE9iXoCqTOV0YgzyGVN+pm2XmRliIhvPSue1TmMz9Jn\nKnDBwZaop3KD5ldgnhU6FAWbs8IdrWNlIxsJOU6JicwoJp6TEgPGE0HlKm+J2cbr\n00khlhwBAgMBAAECggEAUrBo/YVt3t2INaHXybExe1di3O0+HksnToKbY1soBANi\nZe4LaNf7PFkag7Mle8PIjVJ87rE850bmg8p26yo2g/3lHsjEaS6IYgj+J74plMpl\nJ4t4pA7GeM8F2d9BkCcfBvALJZpG7mUtzJ4iey6AqaL7NMhDBKp0cQBhRwZ0+oJ+\n43h+Ei0c0PPqmRmlUmU/lnosH52YZJvYGe4fJmEgA1XT397O1WIlcyS5g/MD1kiN\neKjGiaGRGWXq1kY6L0eJhiXMSQvKDV0D+xbuIyml1SaiWeYMNHZVX/PNxyguDEXW\nksSzSg58l2hC78cqvB/F/VVBUiZNTe2WQ1Uf4WLSbwKBgQDfR2Rj3rIpnSoSMDV+\n10TMTWOrygnv4W91en5GFTN1FSYCA5oDtsUQX+OSnU/8JicU9/lYOrakZr+bHtrG\nnU9rSzbDvs1U0OUto2PvkYNRUH0ja9Rbnr+6HIirRIUoVw+XqQ4sUeu0nTC2EQmE\newaDVsvxFewVMcdCH6OBQTMXtwKBgQDHiIqeVjO7XTFOwIaoPN9QpfjZ1PzPscxR\n3P3i2e+iuJ8ceFJhe3wvkoM1ocL8lz8mDxu1o9trKGP4ce1HKSfpsRZ0Lu+g0Yuv\n+0XAqqtIRMWkVojmfUNwffBkXdEYvx2X+EhMGNgGw0oAfTXVvMlwu0fFSmHA0mca\nj739vrc6BwKBgCG/tsrptGBZ4ywQoWVkwH9pCzHCPjJGDwTg2Qla1wZRhgcz6Cm7\njJnnBIz6vkZMtgeTW9scNNMwvLGDvmnbCVAcdFCuHHc/hASb99UUV5cI5YFfISAg\nJLbK7VWF6+KnFjJEWWIVl90bDWvXs2qU9e0QR49PUvn5Jjc2dQ5qfoCNAoGBAIm3\nSv1nv8LU2oBhT0903Cj8tNocL/Vl4QCrh6v4AXaM+Hyc6zcPFLJ87ASrRjoyZcpt\n6REgLAQ013MVptBTrpGTwUylTIzxs/jdc9I7uYZiuQrpEwoKcO6GbdHIEtaCqflG\nyxeCmi9owH2/7dU8vMgK6slXwkpkrfbeOSKWbD4nAoGAJ62U0iyJK/Y5FzVfy7nP\nk7IxJqhqejDTmK3TSPCUwHegCwuiSfnppH6kiV6Ddn5liv1KyVheonQBJRw44i1c\n1GVqHGRE9CJ5krv+3GP3s3K2d+lqdnjsQnu/CMsP+0eps6ZoWeEobxPW8taOoPZn\n2nfDbGlV+P39ffxy+KYsoLA=\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-fbsvc@jaxrat-6813c.iam.gserviceaccount.com",
+  "client_id": "112368574790669293839",
   "auth_uri": "https://accounts.google.com/o/oauth2/auth",
   "token_uri": "https://oauth2.googleapis.com/token",
   "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk%40jaxrat-6813c.iam.gserviceaccount.com",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40jaxrat-6813c.iam.gserviceaccount.com",
   "universe_domain": "googleapis.com"
 }
 
